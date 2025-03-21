@@ -1,0 +1,495 @@
+import React, { useEffect, useState } from "react";
+import { View, Text, StyleSheet, Image, FlatList, TouchableOpacity, StatusBar, Modal, ImageBackground, ViewStyle, TextStyle, ImageStyle } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { BORDERRADIUS, FONTFAMILY, FONTSIZE, SPACING,COLORS } from "../theme/theme";
+import { useTheme } from '../context/ThemeContext';
+import { useNavigation } from "@react-navigation/native";
+import AppHeader from "../components/AppHeader";
+import { LinearGradient } from 'expo-linear-gradient';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import DashedLine from 'react-native-dashed-line';
+import axios from "axios";
+import { baseImagePath } from "../api/apicalls";
+import { useTranslation } from 'react-i18next';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+interface Ticket {
+    id: number;
+    booking_time: string;
+    seats: number;
+    session: {
+        id: number;
+        available_seats: number;
+        cinema: {
+            id: number;
+            name: string;
+            address: string;
+        };
+        date: string;
+        film: {
+            id: number;
+            title: string;
+            poster_image: string;
+        };
+        hall: number;
+        language: string;
+        time: string;
+    };
+    status: string;
+    total_price: string;
+    user: {
+        id: number;
+        username: string;
+        email: string;
+        phone_number: string;
+    };
+}
+
+const formatTime = (timeString: string) => {
+  const [hours, minutes] = timeString.split(":"); 
+  return `${hours}:${minutes}`;
+};
+
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString);
+  const day = date.getDate();
+  const month = date.getMonth() + 1;
+  const year = date.getFullYear();
+  return `${day < 10 ? '0' + day : day}.${month < 10 ? '0' + month : month}.${year}`;
+};
+
+const TicketScreen = ({navigation, route}: any) => {
+  const { t } = useTranslation();
+  const { colors } = useTheme(); // Get theme colors
+
+  const getDayOfWeek = (dateString: string) => {
+    const dateObject = new Date(dateString); // Directly parse YYYY-MM-DD format
+    
+    return {
+        date: dateObject.getDate(),
+        day: t(`days.full.${dateObject.getDay()}`),
+    };
+  };
+    const [modalVisible, setModalVisible] = useState(false);
+    const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
+    const [tickets, setTickets] = useState<Ticket[]>([]);
+    const [session, setSession] = useState<any>(null);
+    useEffect(() => {
+      if (route.params?.session && route.params?.seats) {
+          const newTicket: Ticket = {
+              id: tickets.length + 1,
+              booking_time: new Date().toISOString(),
+              seats: route.params.seats,
+              session: route.params.session,
+              status: 'CONFIRMED',
+              total_price: route.params.totalPrice || '0',
+              user: {
+                  id: 0, // Will be set by backend
+                  username: '',
+                  email: '',
+                  phone_number: ''
+              }
+          };
+          setTickets(prevTickets => [newTicket, ...prevTickets]);
+      }
+  }, [route.params]);
+
+
+useEffect(() => {
+  const fetchTickets = async () => {
+      const token = await AsyncStorage.getItem('userToken');
+      
+      try {
+          const response = await axios.get("http://0.0.0.0:8000/api/bookings/", {
+              headers: {
+                  'Content-Type': 'application/json',
+                  'Accept': 'application/json',
+                  'Authorization': `Bearer ${token}`
+              }
+          });
+
+          if (response.data && Array.isArray(response.data)) {
+              setTickets(response.data);
+          }
+      } catch (error) {
+          console.error("Error fetching tickets:", error);
+      }
+  };
+  fetchTickets();
+}, []);
+
+
+const renderTicket = ({ item }: { item: Ticket }) => {
+        const formattedDate = formatDate(item.session.date);
+        const formattedTime = formatTime(item.session.time);
+        return (
+        <TouchableOpacity 
+          style={[styles.ticketContainer_one, { backgroundColor: colors.card }]} 
+          onPress={() => {
+          setSelectedTicket(item);
+          setModalVisible(true);
+        }}>
+          <Image source={{ uri: item.session.film.poster_image }} style={styles.ticketImage} />
+          <View style={styles.ticketInfo}>
+            <Text style={[styles.ticketTitle, { color: colors.primary }]}>{item.session.film.title}</Text>
+            <Text style={[styles.ticketDetails, { color: colors.text }]}>
+              {t('ticket.cinema')}: {item.session.cinema.name}
+            </Text>
+            <View style={[styles.statusBadge, { backgroundColor: item.status === 'CONFIRMED' ? '#4CAF50' : '#F44336' }]}>
+              <Text style={styles.statusText}>
+                {item.status === 'CONFIRMED' ? t('ticket.active') : t('ticket.expired')}
+              </Text>
+            </View>
+          </View>
+        </TouchableOpacity>
+        );
+    };
+
+    // Create themed styles inside the component using the current theme colors
+  // Combine base styles with theme-dependent styles
+// Create theme-dependent styles inside the component
+// Combine static styles with theme-dependent styles
+const styles = StyleSheet.create({
+    ...baseStyles,
+    container: {
+      ...baseStyles.container,
+      backgroundColor: colors.background
+    },
+    ticketTitle: {
+      fontSize: 16,
+      fontWeight: "bold",
+      color: colors.text
+    },
+    ticketDetails: {
+      ...baseStyles.ticketDetails,
+      color: colors.text
+    },
+    statusBadge: {
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: BORDERRADIUS.radius_4,
+      marginTop: 4
+    },
+    statusText: {
+      color: COLORS.White,
+      fontSize: FONTSIZE.size_12,
+      fontFamily: FONTFAMILY.poppins_medium
+    },
+    tabContainer: {
+      ...baseStyles.tabContainer,
+      borderBottomColor: colors.border
+    },
+    activeTab: {
+      ...baseStyles.activeTab,
+      borderBottomColor: colors.primary
+    },
+    tabText: {
+      ...baseStyles.tabText,
+      color: colors.text
+    },
+    activeTabText: {
+      color: colors.primary
+    },
+    emptyTitle: {
+      fontSize: 16,
+      fontWeight: "bold",
+      marginBottom: 8,
+      color: colors.primary
+    },
+    emptySubtitle: {
+      fontSize: 12,
+      textAlign: "center",
+      color: colors.text
+    },
+    emptyContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      minHeight: '100%'
+    },
+    emptyStateContainer: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: SPACING.space_20
+    }
+  });
+
+  return (
+        <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+                <StatusBar hidden />
+                <View style={styles.appHeaderContainer}>
+                  <AppHeader
+                    name="arrow-back"
+                    header={t('ticket.myTickets')}
+                    action={() => navigation.goBack()}
+                    />
+                </View>
+            <FlatList
+                data={tickets}
+                renderItem={renderTicket}
+                contentContainerStyle={[styles.ticketContainerList, tickets.length === 0 && styles.emptyContainer]}
+                keyExtractor={(item) => item.id.toString()}
+                ListEmptyComponent={() => (
+                    <View style={styles.emptyStateContainer}>
+                        <Ionicons name="ticket-outline" size={64} color={colors.primary} />
+                        <Text style={styles.emptyTitle}>{t('ticket.noTickets')}</Text>
+                        <Text style={styles.emptySubtitle}>{t('ticket.ticketFor')}</Text>
+                    </View>
+                )}
+            />
+        <Modal
+        visible={modalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setModalVisible(false)}>
+        <View style={[styles.modalOverlay, { backgroundColor: 'rgba(0, 0, 0, 0.9)' }]}>
+            <View style={styles.ticketContainer}>
+              <ImageBackground
+                source={{uri: selectedTicket?.session.film.poster_image}}
+                style={styles.ticketBGImage}>
+                <LinearGradient
+                  colors={[`${colors.primary}00`, colors.primary]}
+                  style={styles.linearGradient}
+                />
+              </ImageBackground>
+
+              <DashedLine 
+                style={styles.dashedLine} 
+                dashLength={10} 
+                dashThickness={4} 
+                dashStyle={{ borderRadius: 12 }} 
+                dashColor={selectedTicket?.status === 'CONFIRMED' ? '#4CAF50' : '#F44336'} 
+                dashGap={14}
+              />
+
+              <View style={styles.ticketFooter}>
+                <View style={styles.ticketDateContainer}>
+                  <View style={styles.subtitleContainer}>
+                    <Text style={[styles.dateTitle, { color: colors.text }]}>
+                      {new Date(selectedTicket?.session.date || '').getDate()}
+                    </Text>
+                    <Text style={[styles.subtitle, { color: colors.text }]}>
+                      {t(`days.full.${new Date(selectedTicket?.session.date || '').getDay()}`)}
+                    </Text>
+                  </View>
+                  <View style={styles.subtitleContainer}>
+                    <Ionicons name="time-sharp" style={[styles.clockIcon, { color: colors.text }]} />
+                    <Text style={[styles.subtitle, { color: colors.text }]}>
+                      {formatTime(selectedTicket?.session.time || '')}
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={styles.ticketSeatContainer}>
+                  <View style={styles.subtitleContainer}>
+                    <Text style={[styles.subheading, { color: colors.border }]}>{t('ticket.hall')}</Text>
+                    <Text style={[styles.subtitle, { color: colors.text }]}>{selectedTicket?.session.hall}</Text>
+                  </View>
+                  <View style={styles.subtitleContainer}>
+                    <Text style={[styles.subheading, { color: colors.border }]}>{t('ticket.seats')}</Text>
+                    <Text style={[styles.subtitle, { color: colors.text }]}>{selectedTicket?.seats}</Text>
+                  </View>
+                  <View style={styles.subtitleContainer}>
+                    <Text style={[styles.subheading, { color: colors.border }]}>{t('ticket.totalPrice')}</Text>
+                    <Text style={[styles.subtitle, { color: colors.text }]}>{selectedTicket?.total_price}</Text>
+                  </View>
+                </View>
+
+                <View style={[styles.statusBadge, { backgroundColor: selectedTicket?.status === 'CONFIRMED' ? '#4CAF50' : '#F44336' }]}>
+                  <Text style={styles.statusText}>
+                    {selectedTicket?.status === 'CONFIRMED' ? t('ticket.active') : t('ticket.expired')}
+                  </Text>
+                </View>
+
+                <Image
+                  source={require('../assets/image/barcode.png')}
+                  style={styles.barcodeImage}
+                />
+              </View>
+            </View>
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={() => setModalVisible(false)}>
+                <Ionicons name="close-circle" size={56} color={colors.card} />
+            </TouchableOpacity>
+        </View>
+      </Modal>
+
+        </SafeAreaView>
+
+    );
+
+  };
+
+  interface ThemeColors {
+  background: string;
+  text: string;
+  primary: string;
+  card: string;
+  border: string;
+}
+
+// Static styles that don't depend on theme
+const baseStyles = StyleSheet.create({
+    container: { flex: 1 },
+    ticketContainerList: { padding: 16, gap: 8 },
+    ticketContainer_one: { flexDirection: "row", padding: 16, borderRadius: BORDERRADIUS.radius_15 },
+    ticketImage: { width: 64, height: 84, borderRadius: 4 },
+    ticketInfo: { flex: 1, marginLeft: 10 },
+    ticketDetails: { fontSize: 14 },
+    appHeaderContainer: { marginHorizontal: SPACING.space_16, marginTop: SPACING.space_10 },
+    tabContainer: { flexDirection: "row", borderBottomWidth: 1 },
+    tab: { flex: 1, padding: 10, alignItems: "center" },
+    activeTab: { borderBottomWidth: 2 },
+    tabText: { fontSize: 14 },
+    emptyContainer: { flex: 1, alignItems: "center", justifyContent: "center", padding: 16 },
+    emptyImage: { width: 80, height: 80, marginBottom: 16 },
+    ticketContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        top: -20,
+      },
+      ticketBGImage: {
+        alignSelf: 'center',
+        width: 280,
+        aspectRatio: 200 / 300,
+        borderTopLeftRadius: BORDERRADIUS.radius_25,
+        borderTopRightRadius: BORDERRADIUS.radius_25,
+        overflow: 'hidden',
+        justifyContent: 'flex-end',
+      },
+      linearGradient: {
+        height: '50%',
+      },
+      linear: {
+        borderRadius: 23,
+        borderWidth: 2.4, 
+        width: 280,
+        alignSelf: 'center',
+        backgroundColor: COLORS.Orange,
+        borderStyle: 'dashed',
+      },
+      inactiveLinear: {
+        borderWidth: 2.4, 
+        width: 280,
+        alignSelf: 'center',
+        backgroundColor: COLORS.Grey,
+        borderStyle: 'dashed',
+        
+      },
+      inactiveTicketFooter: {
+        backgroundColor: COLORS.Grey,
+        width: 280,
+        alignItems: 'center',
+        paddingBottom: SPACING.space_36,
+        alignSelf: 'center',
+        borderBottomLeftRadius: BORDERRADIUS.radius_25,
+        borderBottomRightRadius: BORDERRADIUS.radius_25,
+      },
+      ticketFooter: {
+        backgroundColor: COLORS.Orange,
+        width: 280,
+        alignItems: 'center',
+        paddingBottom: SPACING.space_36,
+        alignSelf: 'center',
+        borderBottomLeftRadius: BORDERRADIUS.radius_25,
+        borderBottomRightRadius: BORDERRADIUS.radius_25,
+      },
+      dashedLine: {
+        width: 270,
+        alignSelf: "center",
+      },
+      
+      inactiveDashedLine: {
+        width: 270,
+        alignSelf: "center",
+      },
+      
+      ticketDateContainer: {
+        flexDirection: 'row',
+        gap: SPACING.space_36,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginVertical: SPACING.space_10,
+      },
+      ticketSeatContainer: {
+        flexDirection: 'row',
+        gap: SPACING.space_36,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginVertical: SPACING.space_10,
+      },
+      dateTitle: {
+        fontFamily: FONTFAMILY.poppins_medium,
+        fontSize: FONTSIZE.size_24,
+        color: COLORS.White,
+      },
+      subtitle: {
+        fontFamily: FONTFAMILY.poppins_regular,
+        fontSize: FONTSIZE.size_14,
+        color: COLORS.White,
+      },
+      subheading: {
+        fontFamily: FONTFAMILY.poppins_medium,
+        fontSize: FONTSIZE.size_18,
+        color: COLORS.White,
+      },
+      subtitleContainer: {
+        alignItems: 'center',
+      },
+      clockIcon: {
+        fontSize: FONTSIZE.size_24,
+        color: COLORS.White,
+        paddingBottom: SPACING.space_10,
+      },
+      barcodeImage: {
+        height: 50,
+        aspectRatio: 158 / 52,
+      },
+      blackCircle: {
+        height: 80,
+        width: 80,
+        borderRadius: 80,
+        backgroundColor: COLORS.Black,
+        overflow: "hidden", 
+      },
+      modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        justifyContent: 'center',
+        alignItems: 'center',
+      },
+      modalContent: {
+        width: '90%',
+        backgroundColor: COLORS.Black,
+        borderRadius: BORDERRADIUS.radius_15,
+        alignItems: 'center',
+        padding: SPACING.space_20,
+      },
+      modalTitle: {
+        color: COLORS.White,
+        fontSize: FONTSIZE.size_20,
+        fontFamily: FONTFAMILY.poppins_bold,
+      },
+      modalTitleInactive: {
+        color: COLORS.Grey,
+        fontSize: FONTSIZE.size_20,
+        textAlign: 'center',
+        padding: SPACING.space_10,
+      },
+      modalDetails: {
+        padding: SPACING.space_20,
+      },
+      modalText: {
+        color: COLORS.White,
+        fontSize: FONTSIZE.size_16,
+        marginBottom: SPACING.space_10,
+      },
+      closeButton: {
+        position: 'absolute',
+        zIndex: 1,
+      },
+    
+  });
+
+  export default TicketScreen;
