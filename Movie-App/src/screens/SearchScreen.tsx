@@ -29,7 +29,13 @@ const SearchScreen = ({navigation}: any) => {
         setSearchList([]);
         return;
       }
-      const response = await fetch(getApiUrl(`/films/search/?query=${encodeURIComponent(name)}`));
+  
+      // Construct the base URL without the query
+      const baseUrl = getApiUrl('/films/search/');
+      // Append the query parameter separately
+      const url = `${baseUrl}?query=${encodeURIComponent(name)}`;
+  
+      const response = await fetch(url);
       if (!response.ok) {
         throw new Error('Server error');
       }

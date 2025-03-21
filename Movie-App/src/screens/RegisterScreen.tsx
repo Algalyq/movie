@@ -205,4 +205,5 @@ const styles = StyleSheet.create({
   },
 });
 
+export { RegisterScreen };
 export default RegisterScreen;
