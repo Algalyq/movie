@@ -53,8 +53,8 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.Black,
   },
   appHeaderContainer: {
-    marginHorizontal: SPACING.space_36,
-    marginTop: SPACING.space_20 * 2,
+    marginHorizontal: SPACING.space_16,
+    marginTop: SPACING.space_10,
   },
   profileContainer: {
     alignItems: 'center',

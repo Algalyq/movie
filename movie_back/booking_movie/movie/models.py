@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MinValueValidator, MaxValueValidator
+from .utils import get_language
 
 class User(AbstractUser):
     phone_number = models.CharField(max_length=15, blank=True)
@@ -30,6 +31,19 @@ class Hall(models.Model):
     def __str__(self):
         return f"{self.cinema.name} - {self.name}"
 
+class FilmTranslation(models.Model):
+    film = models.ForeignKey('Film', on_delete=models.CASCADE, related_name='translations')
+    language_code = models.CharField(max_length=10)  # e.g., 'en', 'ru', 'kz'
+    title = models.CharField(max_length=200)
+    overview = models.TextField()
+    tagline = models.CharField(max_length=200, blank=True)
+
+    class Meta:
+        unique_together = ('film', 'language_code')  # Ensure one translation per language per film
+
+    def __str__(self):
+        return f"{self.film.title} - {self.language_code}"
+
 class Film(models.Model):
     title = models.CharField(max_length=200)
     overview = models.TextField()
@@ -55,8 +69,32 @@ class Film(models.Model):
             self.vote_average = 0.0
         self.save()
 
+    def get_translation(self, language_code=None):
+        """Get the translation for the current or specified language"""
+        if not language_code:
+            language_code = get_language() or 'en'  # Default to English if no language is set
+
+        translation = self.translations.filter(language_code=language_code).first()
+        if not translation:
+            # Fall back to English or any default language
+            translation = self.translations.filter(language_code='en').first()
+            if not translation:
+                # If no English translation, create a default one
+                default_translation = FilmTranslation.objects.create(
+                    film=self,
+                    language_code='en',
+                    title=self.title,  # Fallback title if no translation exists
+                    overview=self.overview,
+                    tagline=self.tagline
+                )
+                return default_translation
+
+        return translation
+
+
     def __str__(self):
         return self.title
+
 
 class Vote(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='votes')

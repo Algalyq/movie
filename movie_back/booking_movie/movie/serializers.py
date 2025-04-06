@@ -4,7 +4,7 @@ from rest_framework.validators import UniqueValidator
 from django.contrib.auth.password_validation import validate_password
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from .models import Actor, CinemaTheater, Film, MovieSession, Booking
-
+from django.utils.translation import get_language
 User = get_user_model()
 
 
@@ -72,10 +72,32 @@ class CinemaTheaterSerializer(serializers.ModelSerializer):
         model = CinemaTheater
         fields = '__all__'
 
+
 class FilmSerializer(serializers.ModelSerializer):
     actors = ActorSerializer(many=True, read_only=True)
     poster_image = serializers.SerializerMethodField()
     background_image = serializers.SerializerMethodField()
+    title = serializers.SerializerMethodField()
+    overview = serializers.SerializerMethodField()
+    tagline = serializers.SerializerMethodField()
+
+    def get_title(self, obj):
+        request = self.context.get('request')
+        language_code = get_language() if request else 'en'
+        translation = obj.get_translation(language_code)
+        return translation.title if translation else obj.title
+
+    def get_overview(self, obj):
+        request = self.context.get('request')
+        language_code = get_language() if request else 'en'
+        translation = obj.get_translation(language_code)
+        return translation.overview if translation else ""
+
+    def get_tagline(self, obj):
+        request = self.context.get('request')
+        language_code = get_language() if request else 'en'
+        translation = obj.get_translation(language_code)
+        return translation.tagline if translation else ""
 
     def get_poster_image(self, obj):
         if obj.poster_image:
@@ -93,7 +115,11 @@ class FilmSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Film
-        fields = '__all__'
+        fields = '__all__' 
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        return data
 
 class MovieSessionSerializer(serializers.ModelSerializer):
     film = FilmSerializer(read_only=True)

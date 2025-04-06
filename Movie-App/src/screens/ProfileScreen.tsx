@@ -18,6 +18,7 @@ import AppHeader from '../components/AppHeader';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 import { useTheme } from '../context/ThemeContext';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { SPACING } from '../theme/theme';
 
 interface ProfileData {
   name: string;
@@ -277,8 +278,8 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   appHeaderContainer: {
-    marginHorizontal: 16,
-    marginBottom: 8,
+    marginHorizontal: SPACING.space_16,
+    marginBottom: SPACING.space_10,
   },
   profilePhoto: {
     width: 120,

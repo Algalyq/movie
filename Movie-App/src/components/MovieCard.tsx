@@ -13,7 +13,7 @@ import { useTheme } from '../context/ThemeContext';
 const MovieCard = (props: any) => {
   const { theme, colors } = useTheme();
   const backgroundColor = theme ? COLORS.BlackRGB10 : COLORS.Black;
-
+  console.log(props.imagePath)
   return (
     <TouchableOpacity onPress={() => props.cardFunction()}>
       <View
@@ -33,8 +33,13 @@ const MovieCard = (props: any) => {
         {/* Wrap Image in a View to center it vertically */}
         <View style={styles.imageContainer}>
           <Image
-            style={[styles.cardImage, { width: props.cardWidth }]}
-            source={{ uri: props.imagePath }}
+            style={[
+              styles.cardImage,
+              { width: props.cardWidth, height: props.cardWidth * 1.5 },
+            ]}
+            source={{
+              uri: props.imagePath || 'https://www.impawards.com/1994/posters/shawshank_redemption_ver1.jpg',
+            }}
           />
         </View>
 

@@ -4,7 +4,7 @@ import SearchScreen from '../screens/SearchScreen';
 import UserAccountScreen from '../screens/UserAccountScreen';
 import {COLORS, FONTSIZE, SPACING} from '../theme/theme';
 import { Ionicons } from '@expo/vector-icons';
-import {View, StyleSheet} from 'react-native';
+import {View, StyleSheet,Text} from 'react-native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import TicketScreen from '../screens/TicketScreen';
 import { useTranslation } from 'react-i18next';
@@ -23,7 +23,7 @@ const TabNavigator = () => {
         tabBarStyle: {
           backgroundColor: theme === 'dark' ? COLORS.Black : COLORS.GreyRGBA0,
           borderTopWidth: 0,
-          height: SPACING.space_10 * 10,
+          height: SPACING.space_10 * 12,
         },
       }}>
       <Tab.Screen
@@ -33,17 +33,22 @@ const TabNavigator = () => {
           tabBarShowLabel: false,
           tabBarIcon: ({focused, color, size}) => {
             return (
+              <>
               <View
                 style={[
                   styles.activeTabBackground,
                   focused ? {backgroundColor: COLORS.Orange} : {},
                 ]}>
+                  
                 <Ionicons
                   name="film"
                   color={COLORS.White}
                   size={FONTSIZE.size_30}
                 />
+{/* <Text style={[styles.text_path, focused]}>Main</Text> */}
               </View>
+
+              </>
             );
           },
         }}
@@ -121,9 +126,12 @@ const TabNavigator = () => {
 const styles = StyleSheet.create({
   activeTabBackground: {
     backgroundColor: COLORS.Black,
-    padding: SPACING.space_18,
-    borderRadius: SPACING.space_18 * 10,
+    padding: 8,
+    borderRadius: SPACING.space_12,
   },
+  text_path: {
+    
+  }
 });
 
 export default TabNavigator;

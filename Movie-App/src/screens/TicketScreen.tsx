@@ -50,6 +50,28 @@ interface Ticket {
 const TicketScreen = ({ navigation, route }: any) => {
   const { t } = useTranslation();
   const { colors } = useTheme();
+  const navigationState = useNavigation();
+
+  // Check if navigated from another page
+  useEffect(() => {
+    const checkNavigationSource = () => {
+      if (route.params) {
+        console.log("Navigated from another page with params:", route.params);
+        // Example: Check if there's a specific param like 'from'
+        if (route.params.from) {
+          console.log(`Navigated from: ${route.params.from}`);
+          // You can perform actions here, like showing a message or updating state
+        } else if (route.params.session && route.params.seats) {
+          console.log("Navigated from booking page with session and seats");
+          // This indicates navigation from a booking or similar page
+        }
+      } else {
+        console.log("Navigated directly or no params provided");
+      }
+    };
+
+    checkNavigationSource();
+  }, [route.params]);
 
   const getDayOfWeek = (dateString: string) => {
     const dateObject = new Date(dateString);
@@ -60,8 +82,7 @@ const TicketScreen = ({ navigation, route }: any) => {
   };
 
   const formatTime = (timeString: string) => {
-    // Convert "hh:mm:ss" to "hh:mm"
-    return timeString.slice(0, 5); // Takes first 5 characters, e.g., "09:17" from "09:17:14"
+    return timeString.slice(0, 5);
   };
 
   const [modalVisible, setModalVisible] = useState(false);
@@ -77,7 +98,7 @@ const TicketScreen = ({ navigation, route }: any) => {
         session: route.params.session,
         status: 'CONFIRMED',
         total_price: route.params.totalPrice || '0',
-        active: true, // Assuming new tickets are active
+        active: true,
         user: {
           id: 0,
           username: '',
@@ -145,71 +166,27 @@ const TicketScreen = ({ navigation, route }: any) => {
     );
   };
 
-  const styles = StyleSheet.create({
-    ...baseStyles,
-    container: {
-      ...baseStyles.container,
-      backgroundColor: colors.background
-    },
-    ticketTitle: {
-      fontSize: 16,
-      fontWeight: "bold",
-      color: colors.text
-    },
-    ticketDetails: {
-      ...baseStyles.ticketDetails,
-      color: colors.text
-    },
-    statusBadge: {
-      paddingHorizontal: 8,
-      paddingVertical: 4,
-      borderRadius: BORDERRADIUS.radius_4,
-      marginTop: 4,
-      alignSelf: 'flex-start'
-    },
-    statusText: {
-      color: COLORS.White,
-      fontSize: FONTSIZE.size_12,
-      fontFamily: FONTFAMILY.poppins_medium
-    },
-    tabContainer: {
-      ...baseStyles.tabContainer,
-      borderBottomColor: colors.border
-    },
-    activeTab: {
-      ...baseStyles.activeTab,
-      borderBottomColor: colors.primary
-    },
-    tabText: {
-      ...baseStyles.tabText,
-      color: colors.text
-    },
-    activeTabText: {
-      color: colors.primary
-    },
-    emptyTitle: {
-      fontSize: 16,
-      fontWeight: "bold",
-      marginBottom: 8,
-      color: colors.primary
-    },
-    emptySubtitle: {
-      fontSize: 12,
-      textAlign: "center",
-      color: colors.text
-    }
-  });
+  // Rest of your styles and return statement remain the same...
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <StatusBar hidden />
       <View style={styles.appHeaderContainer}>
+      {route.params?.from === 'SuccessScreen' ? (
         <AppHeader
-          name="arrow-back"
-          header={t('ticket.myTickets')}
-          action={() => navigation.navigate('Tab')}
-        />
-      </View>
+        name="arrow-back"
+        header={t('ticket.myTickets')}
+        action={() => navigation.navigate('Tab')}
+      />
+    ) : (
+      
+        <View style={styles.container_header}>
+          <Text style={[styles.headerText, { color: colors.text }]}>{t('ticket.myTickets')}</Text>
+        </View>
+      
+    )}
+</View>
+      
       <FlatList
         data={tickets}
         renderItem={renderTicket}
@@ -240,8 +217,8 @@ const TicketScreen = ({ navigation, route }: any) => {
               dashColor={selectedTicket?.active ? colors.primary : colors.border}
               dashGap={14}
             />
-
-            <View style={styles.ticketFooter}>
+{/*  selectedTicket?.active */}
+            <View style={{...styles.ticketFooter, backgroundColor: selectedTicket?.active ? colors.primary : colors.border}}>
               <View style={styles.ticketDateContainer}>
                 <View style={styles.subtitleContainer}>
                   <Text style={styles.dateTitle}>{new Date(selectedTicket?.session.date || '').getDate()}</Text>
@@ -285,8 +262,20 @@ const TicketScreen = ({ navigation, route }: any) => {
   );
 };
 
-const baseStyles = StyleSheet.create({
+const styles = StyleSheet.create({
   container: { flex: 1 },
+  container_header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerText: {
+    flex: 1,
+    fontFamily: FONTFAMILY.poppins_medium,
+    fontSize: FONTSIZE.size_20,
+    textAlign: 'center',
+    fontWeight: 'bold'
+  },
   ticketContainerList: { padding: 16, gap: 8 },
   ticketContainer_one: { flexDirection: "row", padding: 16, borderRadius: BORDERRADIUS.radius_15 },
   ticketImage: { width: 64, height: 84, borderRadius: 4 },
@@ -303,6 +292,19 @@ const baseStyles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     top: -20,
+  },
+  ticketTitle:{fontSize: 16,fontWeight: 'bold'},
+  statusBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: BORDERRADIUS.radius_4,
+    marginTop: 4,
+    alignSelf: 'flex-start'
+  },
+  statusText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: COLORS.White
   },
   ticketBGImage: {
     alignSelf: 'center',

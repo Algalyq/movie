@@ -20,8 +20,10 @@ import CategoryHeader from '../components/CategoryHeader';
 import CastCard from '../components/CastCard';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../context/ThemeContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import {COLORS, SPACING, FONTSIZE, FONTFAMILY, BORDERRADIUS} from '../theme/theme';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 
 interface Screening {
@@ -53,16 +55,28 @@ const getMovieCastDetails = async (movieid: number) => {
   }
 };
 
+
+const getLanguageFromStorage = async () => {
+  try {
+    const savedLanguage = await AsyncStorage.getItem('userLanguage');
+    return savedLanguage || 'kk'; // Default to Kazakh if no language is saved
+  } catch (error) {
+    console.error('Failed to load language from storage:', error);
+    return 'kk'; // Fallback to Kazakh
+  }
+};
+
 const fetchMovieDetails = async (movieId: number) => {
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000);
-
+    const language = await getLanguageFromStorage();
     const response = await fetch(filmDetails_back(movieId), {
       method: 'GET',
       signal: controller.signal,
       headers: {
         'Content-Type': 'application/json',
+        'Accept-Language': language,
       },
     });
 
@@ -120,6 +134,10 @@ const MovieDetailsScreen = ({navigation, route}: any) => {
     }
     return days;
   };
+
+  const language_film = {
+    "English": "en", "Russian":"ru", "KK":"kk"
+  }
 
   const dates = getNext7Days();
   const screenings: Screening[] = screeningsData[selectedDate] || [];
@@ -267,7 +285,7 @@ const MovieDetailsScreen = ({navigation, route}: any) => {
         <View style={styles.details}>
           <Text style={[styles.cinema,{color: colors.text}]}>{item.cinema}</Text>
           <Text style={[styles.hall,{color: colors.text}]}>{t('movie.hall')}: {item.hall}</Text>
-          <Text style={[styles.language,{color: colors.text}]}>{t('movie.language')}: {item.language}</Text>
+          <Text style={[styles.language,{color: colors.text}]}>{t('movie.language')}: {t(`movie.language_items.${language_film[item.language]}`)}</Text>
           <Text style={[styles.prices,{color: colors.text}]}>{t('movie.adult')}: {item.prices.adult} ₸ {t('movie.child')}: {item.prices.child} ₸ {t('movie.student')}: {item.prices.student} ₸</Text>
         </View>
       </TouchableOpacity>
@@ -293,6 +311,7 @@ const MovieDetailsScreen = ({navigation, route}: any) => {
   const color_gradient = theme === 'light' ? COLORS.WhiteRGB10 : COLORS.BlackRGB10;
   const color_gradient_1 = theme === 'light' ? COLORS.White : COLORS.Black;
   return (
+    
     <ScrollView
       style={[styles.container, { backgroundColor: colors.background }]}
       contentContainerStyle={styles.scrollViewContent}
@@ -312,7 +331,7 @@ const MovieDetailsScreen = ({navigation, route}: any) => {
             <View style={styles.appHeaderContainer}>
               <AppHeader
                 name="arrow-back"
-                header={''}
+                header={t('movie.movieDetails')}
                 action={() => navigation.goBack()}
               />
             </View>
@@ -344,7 +363,7 @@ const MovieDetailsScreen = ({navigation, route}: any) => {
             );
           })}
         </View>
-        <Text style={[styles.tagline, { color: colors.text }]}>{t('movie.tagline')}: {movieData?.tagline}</Text>
+        <Text style={[styles.tagline, { color: colors.text }]}>{movieData?.tagline}</Text>
       </View>
 
       <View style={styles.infoContainer}>
@@ -430,8 +449,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   appHeaderContainer: {
-    marginHorizontal: SPACING.space_36,
-    marginTop: SPACING.space_20 * 2,
+    marginHorizontal: SPACING.space_16,
+    marginTop: SPACING.space_32,
   },
   imageBG: {
     width: '100%',
@@ -502,6 +521,7 @@ const styles = StyleSheet.create({
     marginHorizontal: SPACING.space_36,
     marginVertical: SPACING.space_15,
     textAlign: 'center',
+    transform: [{ skewX: '-16deg' }],
   },
   infoContainer: {
     alignContent: 'center',

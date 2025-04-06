@@ -276,7 +276,7 @@ interface Seat {
   const color_seat_blue_white = theme === 'dark' ? COLORS.White : COLORS.Blue;
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme === 'dark' ? COLORS.Black : COLORS.White }]}>
       <ScrollView
         style={[styles.container, { backgroundColor: theme === 'dark' ? COLORS.Black : COLORS.White }]}
         bounces={false}
@@ -288,7 +288,7 @@ interface Seat {
             style={[styles.ImageBG, { backgroundColor: theme === 'dark' ? COLORS.Black : COLORS.White }]}>
             <LinearGradient colors={[color_gradient, color_gradient_1]} style={styles.linearGradient}>
               <View style={styles.appHeaderContainer}>
-                <AppHeader name="arrow-back" header={''} action={() => navigation.goBack()} />
+                <AppHeader name="arrow-back" header={t('ticket.seats')} action={() => navigation.goBack()} />
               </View>
             </LinearGradient>
             <Text style={[styles.screenText, { color: theme === 'dark' ? COLORS.White : COLORS.Black }]}>
@@ -395,6 +395,7 @@ interface Seat {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    
   },
   ImageBG: {
     width: '100%',
@@ -410,8 +411,6 @@ const styles = StyleSheet.create({
     color: COLORS.White,
   },
   appHeaderContainer: {
-    marginHorizontal: SPACING.space_36,
-    marginTop: SPACING.space_20 * 2,
   },
   seatContainer: {
     marginVertical: SPACING.space_36,

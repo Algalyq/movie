@@ -8,7 +8,7 @@ from .views import (
     FilmViewSet, 
     MovieSessionViewSet, 
     BookingViewSet,
-    TMDBMoviesView, MyObtainTokenPairView,RegisterView
+    TMDBMoviesView, MyObtainTokenPairView,RegisterView,recommend_movies
 )
 from .auth import LoginView, LogoutView
 
@@ -27,4 +27,5 @@ urlpatterns = [
     path('auth/register/', RegisterView.as_view(), name='register'),
     path('auth/logout/', LogoutView.as_view(), name='logout'),
     path('tmdb/popular/', TMDBMoviesView.as_view(), name='tmdb-popular'),
+    path('ai/recommend/', recommend_movies, name='ai-recommend'),
 ]

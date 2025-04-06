@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, { useState, useEffect } from 'react';
 import { getApiUrl } from '../config/api';
 import {
   Text,
@@ -8,19 +8,32 @@ import {
   StatusBar,
   FlatList,
 } from 'react-native';
-import {COLORS, SPACING} from '../theme/theme';
-import {baseImagePath} from '../api/apicalls';
+import { COLORS, SPACING } from '../theme/theme';
+import { baseImagePath } from '../api/apicalls';
 import InputHeader from '../components/InputHeader';
 import SubMovieCard from '../components/SubMovieCard';
 import { useTranslation } from 'react-i18next';
-const {width, height} = Dimensions.get('screen');
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '../context/ThemeContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
-const SearchScreen = ({navigation}: any) => {
-  const {t} = useTranslation();
+
+const { width, height } = Dimensions.get('screen');
+
+const getLanguageFromStorage = async () => {
+  try {
+    const savedLanguage = await AsyncStorage.getItem('userLanguage');
+    return savedLanguage || 'kk'; // Default to Kazakh if no language is saved
+  } catch (error) {
+    console.error('Failed to load language from storage:', error);
+    return 'kk'; // Fallback to Kazakh
+  }
+};
+
+const SearchScreen = ({ navigation }: any) => {
+  const { t } = useTranslation();
   const [searchList, setSearchList] = useState([]);
   const [error, setError] = useState<string | null>(null);
-  const {colors, theme} = useTheme();
+  const { colors, theme } = useTheme();
 
   const searchMoviesFunction = async (name: string) => {
     try {
@@ -29,13 +42,19 @@ const SearchScreen = ({navigation}: any) => {
         setSearchList([]);
         return;
       }
-  
-      // Construct the base URL without the query
+
+      const language = await getLanguageFromStorage();
       const baseUrl = getApiUrl('/films/search/');
-      // Append the query parameter separately
       const url = `${baseUrl}?query=${encodeURIComponent(name)}`;
-  
-      const response = await fetch(url);
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Accept-Language': language,
+        },
+      });
+
       if (!response.ok) {
         throw new Error('Server error');
       }
@@ -49,34 +68,32 @@ const SearchScreen = ({navigation}: any) => {
   };
 
   return (
-    <SafeAreaView style={[styles.container, {backgroundColor: colors.background}]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <StatusBar hidden />
+      <View style={styles.inputContainer}>
+        <InputHeader searchFunction={searchMoviesFunction} />
+      </View>
       <FlatList
         data={searchList}
         keyExtractor={(item: any) => item.id.toString()}
         bounces={false}
         numColumns={2}
         showsVerticalScrollIndicator={false}
-        ListHeaderComponent={
-          <View style={styles.InputHeaderContainer}>
-            <InputHeader searchFunction={searchMoviesFunction} />
-          </View>
-        }
         contentContainerStyle={[
           styles.centerContainer,
-          searchList.length === 0 && styles.centerMessageContainer, // Center message when empty
+          searchList.length === 0 && styles.centerMessageContainer,
         ]}
         ListEmptyComponent={
           <Text style={[styles.emptyMessage, { color: colors.text }]}>
             {error || (searchList.length === 0 ? t('search.typing') : t('search.noResults'))}
           </Text>
         }
-        renderItem={({item}) => (
+        renderItem={({ item }) => (
           <SubMovieCard
-            shoudlMarginatedAtEnd={false}
+            shouldMarginatedAtEnd={false}
             shouldMarginatedAround={true}
             cardFunction={() => {
-              navigation.push('MovieDetails', {movieid: item.id, movie: item});
+              navigation.push('MovieDetails', { movieid: item.id, movie: item });
             }}
             cardWidth={width / 2 - SPACING.space_12 * 2}
             title={item.title}
@@ -85,22 +102,18 @@ const SearchScreen = ({navigation}: any) => {
         )}
       />
     </SafeAreaView>
-  );  
+  );
 };
 
 const styles = StyleSheet.create({
   container: {
-    display: 'flex',
     flex: 1,
     width,
-    alignItems: 'center',
     backgroundColor: COLORS.Black,
   },
-  InputHeaderContainer: {
-    display: 'flex',
+  inputContainer: {
     marginHorizontal: SPACING.space_36,
-    marginTop: SPACING.space_28,
-    marginBottom: SPACING.space_28 - SPACING.space_12,
+    alignItems: 'center',
   },
   centerContainer: {
     alignItems: 'center',
@@ -111,7 +124,6 @@ const styles = StyleSheet.create({
     marginTop: SPACING.space_28,
   },
   centerMessageContainer: {
-    flexGrow: 1,
     justifyContent: 'center',
   },
 });

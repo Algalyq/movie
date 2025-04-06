@@ -20,7 +20,13 @@ const SuccessPage = () => {
       const timer = setTimeout(() => {
         navigation.reset({
           index: 0,
-          routes: [{ name: 'TicketScreen' }],
+          routes: [{ 
+            name: 'TicketScreen', 
+            params: { 
+              from: 'SuccessScreen', // Indicate the source
+              timestamp: new Date().toISOString(), // Optional: add timestamp or other data
+            } 
+          }],
         });
       }, 2000);
 

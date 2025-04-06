@@ -1,6 +1,6 @@
 // Base URL configuration for API endpoints
 export const API_CONFIG = {
-  BASE_URL: 'http://192.168.0.17:8000',
+  BASE_URL: 'http://192.168.1.9:8000',
   API_PREFIX: '/api',
 };
 

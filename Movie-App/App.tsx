@@ -12,6 +12,7 @@ import TicketScreen from './src/screens/TicketScreen';
 import SuccessScreen from './src/screens/SuccessScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import LoginScreen from './src/screens/LoginScreen';
+import EmotionRecommendationPage from './src/screens/EmotionRecommendationPage';
 import './src/i18n/i18n';
 import { useTranslation } from 'react-i18next';
 import { isAuthenticated } from './src/api/authApi';
@@ -114,6 +115,11 @@ const App = () => {
             <Stack.Screen
               name="Register"
               component={RegisterScreen}
+              options={{animation: 'default'}}
+            />
+             <Stack.Screen
+              name="EmotionRecommendationPage"
+              component={EmotionRecommendationPage}
               options={{animation: 'default'}}
             />
           </>

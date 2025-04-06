@@ -121,6 +121,11 @@
     "viewTicket": "View My Ticket"
   },
   "movie": {
+    "language_items": {
+      "en": "English",
+      "ru": "Russian", 
+      "kk": "Kazakh"
+    },
     "nowPlaying": "Now Playing",
     "upcoming": "Upcoming",
     "popular": "Popular",
