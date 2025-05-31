@@ -13,12 +13,16 @@ from django.db.models import OuterRef, Subquery, F, Count, Case, When, Expressio
 from django.utils.translation import get_language
 from django.contrib.auth import get_user_model
 from collections import defaultdict
-from .models import Film, MovieSession, Booking, Actor, CinemaTheater, Vote,FilmTranslation
+import requests
+import json
+import os
+from .models import Film, MovieSession, Booking, Actor, CinemaTheater, Vote, FilmTranslation, EmotionRecognition
 from .serializers import (
     FilmSerializer, 
     MovieSessionSerializer, 
     BookingSerializer, 
-    UserSerializer, 
+    UserSerializer,
+    EmotionRecognitionSerializer, 
     ActorSerializer, 
     CinemaTheaterSerializer,
     RegisterSerializer
@@ -57,15 +61,22 @@ EMOTION_TO_GENRE = {
 def fetch_movies_from_tmdb(genre_id, language="en-US"):
     """Fetch movies from TMDB API based on genre with specified language."""
     url = f"{TMDB_BASE_URL}?api_key={TMDB_API_KEY}&with_genres={genre_id}&sort_by=popularity.desc&page=1&language={language}"
-    # Rest of your code to make the API request and process the response would go here
-    # For example:
     try:
         response = HTTP.get(url)
         response.raise_for_status()  # Raise an error for invalid responses
         data = response.json()
-        movie_titles = [movie['title'] for movie in data['results'][:10]]  # Get top 10 movies
-        return movie_titles
+        
+        # Return list of dictionaries with title and poster_path for top 10 movies
+        movies_data = [
+            {
+                'title': movie['title'],
+                'poster_path': f"https://image.tmdb.org/t/p/w500{movie['poster_path']}" if movie['poster_path'] else None
+            } 
+            for movie in data['results'][:10]
+        ]
+        return movies_data
     except HTTP.exceptions.RequestException as e:
+        print(f"Error fetching movies: {e}")
         return []
 
 # API View to handle emotion input and return movie recommendations
@@ -120,6 +131,45 @@ class ActorViewSet(viewsets.ModelViewSet):
     queryset = Actor.objects.all()
     serializer_class = ActorSerializer
     permission_classes = [permissions.AllowAny]
+
+
+class EmotionRecognitionViewSet(viewsets.ModelViewSet):
+    queryset = EmotionRecognition.objects.all()
+    serializer_class = EmotionRecognitionSerializer
+    permission_classes = [permissions.AllowAny]
+    
+    # Luxand API Token
+    API_TOKEN = "e9ebe7038f134d15bb930afa8f345f04"
+    
+    def perform_create(self, serializer):
+        # Save the image first to get the file path
+        instance = serializer.save(user=self.request.user if self.request.user.is_authenticated else None)
+        
+        # Process the image with Luxand API
+        image_path = instance.image.path
+        emotion_result = self.analyze_emotions(image_path)
+        
+        # Update the instance with the results
+        print(emotion_result) # Result: {'status': 'success', 'faces': [{'dominant_emotion': 'neutral', 'emotion': {'angry': 9.830769531760097e-09, 'disgust': 9.339534737622846e-18, 'fear': 0.08031175239011645, 'happy': 3.6042740703123854e-05, 'neutral': 96.59909009933472, 'sad': 3.3205606043338776, 'surprise': 5.47604253609002e-09}, 'region': {'h': 1082, 'w': 1082, 'x': 551, 'y': 400}}, {'dominant_emotion': 'surprise', 'emotion': {'angry': 0.18388915341347456, 'disgust': 1.688197954763382e-05, 'fear': 0.3496508812531829, 'happy': 0.17838766798377037, 'neutral': 0.012071447417838499, 'sad': 0.0003547129381331615, 'surprise': 99.27563071250916}, 'region': {'h': 327, 'w': 327, 'x': 1289, 'y': 21}}, {'dominant_emotion': 'happy', 'emotion': {'angry': 0.17913111951202154, 'disgust': 0.00020880584088445175, 'fear': 13.759161531925201, 'happy': 53.65341305732727, 'neutral': 23.649947345256805, 'sad': 7.829282432794571, 'surprise': 0.9288579225540161}, 'region': {'h': 194, 'w': 194, 'x': 1998, 'y': 700}}, {'dominant_emotion': 'fear', 'emotion': {'angry': 2.8447549790143967, 'disgust': 0.009377888636663556, 'fear': 82.85174369812012, 'happy': 0.014113380166236311, 'neutral': 0.322294095531106, 'sad': 13.663358986377716, 'surprise': 0.29436349868774414}, 'region': {'h': 56, 'w': 56, 'x': 1899, 'y': 1480}}]}
+        instance.result = emotion_result
+        instance.save()
+    
+    def analyze_emotions(self, image_path):
+        """Analyze emotions in an image using Luxand API"""
+        url = "https://api.luxand.cloud/photo/emotions"
+        headers = {"token": self.API_TOKEN}
+        
+        # Open the image file for sending
+        with open(image_path, "rb") as img_file:
+            files = {"photo": img_file}
+            response = requests.post(url, headers=headers, files=files)
+        
+        if response.status_code == 200:
+            return response.json()
+        else:
+            # Log the error
+            print(f"Error from Luxand API: {response.text}")
+            return {"error": f"API Error: {response.status_code}", "message": response.text}
 
 class CinemaTheaterViewSet(viewsets.ModelViewSet):
     queryset = CinemaTheater.objects.all()

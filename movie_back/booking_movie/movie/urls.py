@@ -8,6 +8,7 @@ from .views import (
     FilmViewSet, 
     MovieSessionViewSet, 
     BookingViewSet,
+    EmotionRecognitionViewSet,
     TMDBMoviesView, MyObtainTokenPairView,RegisterView,recommend_movies
 )
 from .auth import LoginView, LogoutView
@@ -20,6 +21,7 @@ router.register(r'theaters', CinemaTheaterViewSet)
 router.register(r'films', FilmViewSet)
 router.register(r'sessions', MovieSessionViewSet)
 router.register(r'bookings', BookingViewSet)
+router.register(r'emotions', EmotionRecognitionViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),

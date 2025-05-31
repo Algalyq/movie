@@ -193,3 +193,14 @@ class Booking(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.session.film.title}"
+
+
+class EmotionRecognition(models.Model):
+    """Model for storing emotion recognition results"""
+    image = models.ImageField(upload_to='recog/')
+    result = models.JSONField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='emotion_recognitions')
+    
+    def __str__(self):
+        return f"Emotion Recognition {self.id} - {self.created_at}"

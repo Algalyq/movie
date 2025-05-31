@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from rest_framework.validators import UniqueValidator
 from django.contrib.auth.password_validation import validate_password
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from .models import Actor, CinemaTheater, Film, MovieSession, Booking
+from .models import Actor, CinemaTheater, Film, MovieSession, Booking, EmotionRecognition
 from django.utils.translation import get_language
 User = get_user_model()
 
@@ -151,3 +151,13 @@ class BookingSerializer(serializers.ModelSerializer):
         model = Booking
         fields = ('id', 'user', 'session', 'session_id', 'seats', 'booking_time', 'status', 'total_price', 'active')
         read_only_fields = ('booking_time', 'total_price')
+
+
+class EmotionRecognitionSerializer(serializers.ModelSerializer):
+    image = serializers.ImageField()
+    result = serializers.JSONField(read_only=True)
+    
+    class Meta:
+        model = EmotionRecognition
+        fields = ('id', 'image', 'result', 'created_at', 'user')
+        read_only_fields = ('created_at', 'result', 'user')
