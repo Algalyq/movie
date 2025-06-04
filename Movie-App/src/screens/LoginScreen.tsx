@@ -49,10 +49,14 @@ const LoginScreen = ({ navigation }: any) => {
       
       // Ensure we have both token and user data
       if (response.token && response.user) {
-        // Reset navigation state and navigate to Tab
-        navigation.reset({
-          index: 0,
-          routes: [{ name: 'Tab' }],
+        // Reset navigation state and navigate to Tab - updated for compatibility
+        // First clear any navigation state by going to the root navigator
+        navigation.dispatch({
+          type: 'RESET',
+          payload: {
+            index: 0,
+            routes: [{ name: 'Tab' }]
+          },
         });
       } else {
         setError(t('auth.errorInvalidResponse'));

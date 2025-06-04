@@ -3,6 +3,7 @@
     "name": "Movie_App",
     "slug": "movie-app",
     "version": "0.0.1",
+    "sdkVersion": "53.0.0",
     "orientation": "portrait",
     "icon": "./src/assets/icon.png",
     "userInterfaceStyle": "light",

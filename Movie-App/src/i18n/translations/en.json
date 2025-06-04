@@ -150,5 +150,43 @@
     "tagline": "Tagline",
     "noScreenings": "No screenings available for this date",
     "bookTicket": "Book Ticket"
+  },
+  "emotion": {
+    "title": "Emotion Recognition",
+    "takePhoto": "Take Photo",
+    "cameraPermission": "Requesting camera permission...",
+    "noCamera": "No access to camera",
+    "analyzeEmotion": "Analyze Emotion",
+    "pickFromGallery": "Pick from Gallery",
+    "analyzing": "Analyzing your emotion...",
+    "results": "Emotion Analysis Results",
+    "face": "Face",
+    "dominant": "Dominant",
+    "getRecommendations": "Get Film Recommendations Based on",
+    "mood": "Mood",
+    "errorAnalyzing": "Failed to analyze emotion. Please try again."
+  },
+  "recommendation": {
+    "title": "Film Recommendations",
+    "greeting": "Hi there! I can recommend films based on your current mood. How are you feeling today?",
+    "thinking": "Searching for the perfect films for your mood...",
+    "enjoyFilms": "Here are some {{emotion}} mood films I think you might enjoy:",
+    "typeMessage": "Type a message...",
+    "send": "Send",
+    "loadingError": "Failed to load recommendations. Please try again.",
+    "authRequired": "Authentication required",
+    "loginRequired": "You need to be logged in to get personalized recommendations. Please log in and try again.",
+    "tryAgain": "Sorry, I had trouble finding film recommendations. Would you like to try again?",
+    "moodDescriptions": {
+      "Happy": "cheerful and uplifting",
+      "Sad": "heartfelt and emotional",
+      "Angry": "intense and action-packed",
+      "Fear": "suspenseful and thrilling",
+      "Surprise": "unpredictable and mind-bending",
+      "Disgust": "dark and provocative",
+      "Trust": "inspiring and heartwarming",
+      "Anticipation": "exciting and adventurous",
+      "Neutral": "balanced and thoughtful"
+    }
   }
 }

@@ -39,7 +39,7 @@ const HomeScreen = ({ navigation }: any) => {
   const { theme, colors } = useTheme();
 
   // UseState for totalLanguage inside the component
-  // const [totalLanguage, setTotalLanguage] = useState<string>('kk'); // Default language is 'kk'
+  const [totalLanguage, setTotalLanguage] = useState<string>('kk'); // Default language is 'kk'
 
   const getLanguageFromStorage = async () => {
     try {
@@ -260,7 +260,7 @@ const HomeScreen = ({ navigation }: any) => {
       </ScrollView>
      
       {showEmotionRecommendationButton && (
-        <TouchableOpacity onPress={() => navigation.push('EmotionRecommendationPage')}
+        <TouchableOpacity onPress={() => navigation.push('EmotionRecommendationScreen')}
         style={{...styles.iconContainer, backgroundColor: theme == 'dark' ? COLORS.White : COLORS.Black}}>
           <Ionicons name="happy" size={32} color={theme == 'dark' ? COLORS.Orange : COLORS.White} />
         </TouchableOpacity>

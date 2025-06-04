@@ -228,9 +228,12 @@ interface Seat {
               bookingId: response.data.id // Store the booking ID from backend
             })
           );
-          navigation.reset({
-            index: 0,
-            routes: [{ name: 'SuccessScreen' }],
+          navigation.dispatch({
+            type: 'RESET',
+            payload: {
+              index: 0,
+              routes: [{ name: 'SuccessScreen' }]
+            }
           });
         }
       } catch (error: any) {

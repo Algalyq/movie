@@ -18,15 +18,18 @@ const SuccessPage = () => {
     // Navigate to tickets after 2 seconds
     React.useEffect(() => {
       const timer = setTimeout(() => {
-        navigation.reset({
-          index: 0,
-          routes: [{ 
-            name: 'TicketScreen', 
-            params: { 
-              from: 'SuccessScreen', // Indicate the source
-              timestamp: new Date().toISOString(), // Optional: add timestamp or other data
-            } 
-          }],
+        navigation.dispatch({
+          type: 'RESET',
+          payload: {
+            index: 0,
+            routes: [{ 
+              name: 'TicketScreen', 
+              params: { 
+                from: 'SuccessScreen', // Indicate the source
+                timestamp: new Date().toISOString(), // Optional: add timestamp or other data
+              } 
+            }]
+          }
         });
       }, 2000);
 

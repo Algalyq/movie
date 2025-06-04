@@ -45,10 +45,13 @@ const ProfileScreen = ({ navigation }: any) => {
   const handleLogout = async () => {
     try {
       await AsyncStorage.removeItem('userToken');
-      // Reset navigation stack to Login screen
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'Login' }],
+      // Reset navigation stack to Login screen - updated for compatibility
+      navigation.dispatch({
+        type: 'RESET',
+        payload: {
+          index: 0,
+          routes: [{ name: 'Auth' }]
+        },
       });
     } catch (error) {
       console.error('Error during logout:', error);
@@ -192,6 +195,19 @@ const ProfileScreen = ({ navigation }: any) => {
             <Ionicons name="ticket" size={24} color={colors.text} />
             <Text style={[styles.menuItemText, { color: colors.text }]}>
               {t('profile.myTickets')}
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={24} color={colors.text} />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.menuItem, { backgroundColor: colors.background }]}
+          onPress={() => navigation.navigate('EmotionRecognition')}
+        >
+          <View style={styles.menuItemContent}>
+            <Ionicons name="happy-outline" size={24} color={colors.text} />
+            <Text style={[styles.menuItemText, { color: colors.text }]}>
+              Emotion Recognition
             </Text>
           </View>
           <Ionicons name="chevron-forward" size={24} color={colors.text} />

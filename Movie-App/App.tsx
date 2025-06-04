@@ -12,7 +12,8 @@ import TicketScreen from './src/screens/TicketScreen';
 import SuccessScreen from './src/screens/SuccessScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import LoginScreen from './src/screens/LoginScreen';
-import EmotionRecommendationPage from './src/screens/EmotionRecommendationPage';
+import EmotionRecognitionScreen from './src/screens/EmotionRecognitionScreen';
+import FilmRecommendationsScreen from './src/screens/FilmRecommendationsScreen';
 import './src/i18n/i18n';
 import { useTranslation } from 'react-i18next';
 import { isAuthenticated } from './src/api/authApi';
@@ -117,10 +118,15 @@ const App = () => {
               component={RegisterScreen}
               options={{animation: 'default'}}
             />
-             <Stack.Screen
-              name="EmotionRecommendationPage"
-              component={EmotionRecommendationPage}
-              options={{animation: 'default'}}
+            <Stack.Screen
+              name="EmotionRecognition"
+              component={EmotionRecognitionScreen}
+              options={{animation: 'slide_from_right'}}
+            />
+            <Stack.Screen
+              name="FilmRecommendations"
+              component={FilmRecommendationsScreen}
+              options={{animation: 'slide_from_right'}}
             />
           </>
 
